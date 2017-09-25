@@ -4,7 +4,7 @@
 .equ         SWI_PrInt, 0x6b         @ write an integer
 .equ        SWI_Exit, 0x11          @ exit code
 .equ        Stdout, 1         @ Set output mode to output view
-        
+
 
 @##########################################
 @ Initialization code
@@ -33,16 +33,17 @@ main:		ldr 	r3, =my_array	@ Load the starting address of the first
 @###########################################
 
 mov r9, #0 @make a i to count itterations of loop
+add r7, r7, #4
 
 loadLoop:				@ You should create a loop that cycles through all
                                     	@ of the array elements to create a doubly-linked list
 
-            add    r1, r1, #4       @fuck ARMSim
-            mul    r8, r9, r1      @multiply i by 4
-		add	 r6, r6, #32	@ When you insert a new item into a linked list, you
-            ldr    r0, [r3, r8]     @pull values from array
+            mul    r8, r9, r7      @multiply i by 4
+		        add	 r6, r6, #32	@ When you insert a new item into a linked list, you
+            ldr    r2, [r3, r8]     @pull values from array
+            mov r14, r15
             b print
-            
+
                                     	@ might use a malloc command to allocate memory for the
                                     	@ next struct; to mimic this, I simply add a random number
 					@ (32 for non contiguous allocation) to the first element
@@ -56,17 +57,17 @@ loadLoop:				@ You should create a loop that cycles through all
                                     	@ End the loadLoop
 
                                     	@ Suggestion -- after building the list, add a sentinel
-                                    	@ to the head of the list; you may use the value -1 as 
+                                    	@ to the head of the list; you may use the value -1 as
                                     	@ we will not test your code with any negative numbers
 
-print:      
+print:
             mov   r0, #Stdout @ mode is output view
-            mov   r1, r2            @ integer to print (value in r2); value to 
+            mov   r1, r2            @ integer to print (value in r2); value to
                               @ print must be in r1
 
             swi     SWI_PrInt   @ print integer
-            swi     SWI_Exit. @exit function
-                                    	
+            mov r15, r14
+
 @###########################################
 @# INSERT FUNCTION -- you must write
 @###########################################
@@ -88,7 +89,7 @@ print:
 @###########################################
 .data
             my_array:
-                  .word 0x00000000
+                  .word 0x00000013
                   .word 0x00000001
                   .word 0x00000002
                   .word 0x00000003
