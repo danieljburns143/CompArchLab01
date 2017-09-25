@@ -52,17 +52,43 @@ loadLoop:				@ You should create a loop that cycles through all
 
                                     	@ Call a function to add item to list
             add r9, r9, #1
-            add r6, r6, #4              @ r6 is non the previous data point
-            mov r1, r6                  @ r1 is the previous data point
+						cmp r9, r4								@ check to see if r4 is greater than or equal to 20
+						bge exitLoad							@if it is exit, if not move to next node
+            add r6, r6, #4              @ r6 is now the address of data point in previous node
+            mov r1, r6                  @ r1 is r6
             mov r6, r5                  @ r6 is the new start of the next node
-            cmp r9, r4
-            blt loadLoop
-                                    	@ End the loadLoop
+            b loadLoop
+                                    	@ End the loadLoop - Suggestion -- after building the list, add a sentinel
+                                			@to the head of the list; you may use the value -1 as we will not test your code with any negative numbers
+@##########
+@#Array Loaded
+@##########
+exitLoad:
+	mov r1, #-1
+	str r1, [r6, #8]     @set tail pointer to -1
+	ldr r5, [r3, #400]   @set r5 to the address of the start of the linked list
+@##########
+@#Print Initial Linked List using traversion
+@##########
+mov r14, r15
+b print
+@##########
+@#Sort The List
+@##########
+@##########
+@#Print Sorted List
+@##########
+@##########
+@#Delete Duplicates
+@##########
+@##########
+@#Print Final List
+@##########
 
-                                    	@ Suggestion -- after building the list, add a sentinel
-                                    	@ to the head of the list; you may use the value -1 as
-                                    	@ we will not test your code with any negative numbers
 
+@###########################################
+@# INSERT FUNCTION -- you must write
+@###########################################
 insert:
             str r1, [r6]                          @store previous location
             str r2, [r6, #4]                        @store value
@@ -70,21 +96,35 @@ insert:
             mov r15, r14
 
 @###########################################
-@# INSERT FUNCTION -- you must write
-@###########################################
-
-
-@###########################################
 @# SWAP FUNCTION -- you must write
 @###########################################
-
-
+swap:
 @###########################################
 @# DELETE FUNCTION -- you must write
 @###########################################
+delete:
+					@save next value of node being deleted
+					@go back to previous node and update next value to register just used
+					@save location of current register
+					@go to next new next node
+					@update previous value of current register, to the node we just left
 
 
 
+@###########################################
+@# Print Function -- for functionality
+@###########################################
+print:
+	@load value from memory
+	@print current value
+	@load next address from memory
+	@check to see if next pointer == -1
+	@if not, go to next node
+	@loop back up
+
+
+	@exit the printing loop
+	mov r15, r14  @return to main
 @###########################################
 @# ARRAY
 @###########################################
