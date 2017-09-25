@@ -34,24 +34,27 @@ main:		ldr 	r3, =my_array	@ Load the starting address of the first
 
 mov r9, #0 @make a i to count itterations of loop
 add r7, r7, #4
+mov r1, #-1
 
 loadLoop:				@ You should create a loop that cycles through all
                                     	@ of the array elements to create a doubly-linked list
 
             mul    r8, r9, r7      @multiply i by 4
-		        add	 r6, r6, #32	@ When you insert a new item into a linked list, you
+      		add	   r5, r5, #32	@ When you insert a new item into a linked list, you
+                                    @ might use a malloc command to allocate memory for the
+                                    @ next struct; to mimic this, I simply add a random number
+                                    @ (32 for non contiguous allocation) to the first element
+                                    @ of the linked list
             ldr    r2, [r3, r8]     @pull values from array
             mov r14, r15
-            b print
-
-                                    	@ might use a malloc command to allocate memory for the
-                                    	@ next struct; to mimic this, I simply add a random number
-					@ (32 for non contiguous allocation) to the first element
-                                    	@ of the linked list
+            b insert
 
 
                                     	@ Call a function to add item to list
             add r9, r9, #1
+            add r6, r6, #4              @ r6 is non the previous data point
+            mov r1, r6                  @ r1 is the previous data point
+            mov r6, r5                  @ r6 is the new start of the next node
             cmp r9, r4
             blt loadLoop
                                     	@ End the loadLoop
@@ -60,12 +63,10 @@ loadLoop:				@ You should create a loop that cycles through all
                                     	@ to the head of the list; you may use the value -1 as
                                     	@ we will not test your code with any negative numbers
 
-print:
-            mov   r0, #Stdout @ mode is output view
-            mov   r1, r2            @ integer to print (value in r2); value to
-                              @ print must be in r1
-
-            swi     SWI_PrInt   @ print integer
+insert:
+            str r1, [r6]                          @store previous location
+            str r2, [r6, #4]                        @store value
+            str r5, [r6, #8]                        @store Next Location
             mov r15, r14
 
 @###########################################
@@ -89,7 +90,7 @@ print:
 @###########################################
 .data
             my_array:
-                  .word 0x00000013
+                  .word 0x00000000
                   .word 0x00000001
                   .word 0x00000002
                   .word 0x00000003
