@@ -1,3 +1,6 @@
+@Group Memebers: Ryan Green, Connor Green, Dan Burns
+
+
 @##########################################
 @ Lab 01 skeleton
 @##########################################
@@ -32,19 +35,15 @@ main:		ldr 	r3, =my_array	@ Load the starting address of the first
 @# Loop code to building the linked list
 @###########################################
 
-mov r9, #0 @make a i to count itterations of loop
+mov r9, #0 @make a i to count iterations of loop
 add r7, r7, #4
 mov r1, #-1
+add r5, r5, #32
 
 loadLoop:				@ You should create a loop that cycles through all
                                     	@ of the array elements to create a doubly-linked list
 
-            mul    r8, r9, r7      @multiply i by 4
-      		add	   r5, r5, #32	@ When you insert a new item into a linked list, you
-                                    @ might use a malloc command to allocate memory for the
-                                    @ next struct; to mimic this, I simply add a random number
-                                    @ (32 for non contiguous allocation) to the first element
-                                    @ of the linked list
+            mul    r8, r9, r7   @multiply i by 4
             ldr    r2, [r3, r8]     @pull values from array
             mov r14, r15
             b insert
@@ -54,37 +53,40 @@ loadLoop:				@ You should create a loop that cycles through all
             add r9, r9, #1
 						cmp r9, r4								@ check to see if r4 is greater than or equal to 20
 						bge exitLoad							@if it is exit, if not move to next node
-            add r6, r6, #4              @ r6 is now the address of data point in previous node
-            mov r1, r6                  @ r1 is r6
-            mov r6, r5                  @ r6 is the new start of the next node
+
+            mov r1, r6
+            mov r6, r5
+            add r5, r5, #32
+
+
             b loadLoop
                                     	@ End the loadLoop - Suggestion -- after building the list, add a sentinel
                                 			@to the head of the list; you may use the value -1 as we will not test your code with any negative numbers
-@##########
-@#Array Loaded
-@##########
+
 exitLoad:
   mov r2, #0
 	mov r1, #-1
-	str r1, [r6, #8]     @set tail pointer to -1
-	add r5, r3, #400  @set r5 to the address of the start of the linked list
+  add r5, r3, #400  @set r5 to the address of the start of the linked list
+	str r1, [r5]     @set prev pointer on n = 1 to -1
+  str r1, [r6, #4]     @set next pointer on n = 20 to -1
+
 @##########
-@#Print Initial Linked List using traversion
+@#Print Initial Linked List using travers
 @##########
 @## available registers: r6, r7, r8, r9
 mov r14, r15
 b print
+
 @##########
 @#Sort The List
 @##########
-add r5, r3, #404
+add r5, r3, #400
 mov r4, #20
 mov r1, #1
 sort:
   cmp r1,r4
   bge exitSort  @should be sorted if we make it to 20
   mov r2,r1     @i = j
-
   whiLoop:
     cmp r2,#0
     ble postWhi
@@ -100,9 +102,9 @@ sort:
 
   compj:
     @find values of j and j-1
-    ldr r7, [r5]
-    ldr r8, [r5, #-4]
-    ldr r9, [r8]
+    ldr r7, [r5, #8]  @value of j
+    ldr r8, [r5] @r8 is previous location
+    ldr r9, [r8, #8]
     @ j is now r7 and j - 1 is now r9
     cmp r7, r9
     bge postWhi  @go to next loop if as j and j-1 are in order
@@ -147,9 +149,9 @@ swi SWI_Exit
 @# INSERT FUNCTION -- you must write
 @###########################################
 insert:
-            str r1, [r6]                          @store previous location
-            str r2, [r6, #4]                        @store value
-            str r5, [r6, #8]                        @store Next Location
+            str r1, [r6]                          @store previous start
+            str r5, [r6, #4]                        @store next
+            str r2, [r6, #8]                        @store value location
             mov r15, r14
 
 @###########################################
@@ -160,10 +162,10 @@ swap:
         @ write a function to swap n and n-1
         @ assume r5 is the address of n
 
-        ldr r2, [r5, #-4] @ load address of N-1
-        ldr r6, [r2, #-4] @ load previous of N-1 (address to n-2)
-        str r5, [r2, #-4] @ store address of n as previous of n - 1
-      	str r6, [r5, #-4] @ store address prev n-1 into as prev of n
+        ldr r2, [r5] @ load address of N-1
+        ldr r6, [r2] @ load previous of N-1 (address to n-2)
+        str r5, [r2] @ store address of n as previous of n - 1
+      	str r6, [r5] @ store address prev n-1 into as prev of n
       	ldr r6, [r2, #4] @ r6 is now the next of i - 1
       	ldr r7, [r5, #4] @ store the next of n as r7
         str r6, [r5, #4] @set new next pointer for n as the address of the value of n
@@ -189,12 +191,12 @@ delete:
 print:
   mov r0, #Stdout
   mov r8, #-1
-	ldr r1, [r5,#4]          @load value from memory
+	ldr r1, [r5,#8]          @load value from memory
 	swi SWI_PrInt      @print current value
-  mov r0, #32
+  mov r0, #32   @space ASCII
   swi 0x00
-	ldr r5, [r5,#8]          @load next address from memory
-  cmp r5, r8 @check to see if next pointer > -1
+	ldr r5, [r5,#4]          @load next address from memory
+  cmp r5, r8 @check to see if next pointer = -1
 	bgt print   @if r5 is greater than -1, go to the next print
 	mov r15, r14  @return to main
 @###########################################
