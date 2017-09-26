@@ -1,9 +1,9 @@
 @##########################################
 @ Lab 01 skeleton
 @##########################################
-.equ         SWI_PrInt, 0x6b         @ write an integer
+.equ        SWI_PrInt, 0x6b         @ write an integer
 .equ        SWI_Exit, 0x11          @ exit code
-.equ        Stdout, 1         @ Set output mode to output view
+.equ        Stdout, 1               @ Set output mode to output view
 
 
 @##########################################
@@ -64,26 +64,83 @@ loadLoop:				@ You should create a loop that cycles through all
 @#Array Loaded
 @##########
 exitLoad:
+  mov r2, #0
 	mov r1, #-1
 	str r1, [r6, #8]     @set tail pointer to -1
-	ldr r5, [r3, #400]   @set r5 to the address of the start of the linked list
+	add r5, r3, #400  @set r5 to the address of the start of the linked list
 @##########
 @#Print Initial Linked List using traversion
 @##########
+@## available registers: r6, r7, r8, r9
 mov r14, r15
 b print
 @##########
 @#Sort The List
 @##########
+add r5, r3, #404
+mov r4, #20
+mov r1, #1
+sort:
+  cmp r1,r4
+  bge exitSort  @should be sorted if we make it to 20
+  mov r2,r1     @i = j
+
+  whiLoop:
+    cmp r2,#0
+    ble postWhi
+
+  @if j > 0, then we have to find the J element in the list
+  mov r7, #0
+  findj:
+    cmp r2,r7
+    beq compj
+    ldr r5, [r5, #4]
+    add r7, r7, #1
+    b findj
+
+  compj:
+    @find values of j and j-1
+    ldr r7, [r5]
+    ldr r8, [r5, #-4]
+    ldr r9, [r8]
+    @ j is now r7 and j - 1 is now r9
+    cmp r7, r9
+    bge postWhi  @go to next loop if as j and j-1 are in order
+    b swap
+    sub r2, r2, #1		@ j-1 as we move closer to zero
+		b	whiLoop			@ go back to start of while loop
+
+
+  postWhi:
+    add r1,r1,#1
+    b sort
+
+exitSort:
+
 @##########
 @#Print Sorted List
 @##########
+@## available registers:
+add r5, r3, #400
+mov r14, r15
+b print
+
+swi SWI_Exit
 @##########
 @#Delete Duplicates
 @##########
+@## available registers:
+
+
+
+
 @##########
 @#Print Final List
 @##########
+@## available registers:
+@@@@@add r5, r3, #400
+@@@@@mov r14, r15
+@@@@@b print
 
 
 @###########################################
@@ -98,7 +155,22 @@ insert:
 @###########################################
 @# SWAP FUNCTION -- you must write
 @###########################################
+@registers available: r2, r1, r6, r7, r8, r9
 swap:
+        @ write a function to swap n and n-1
+        @ assume r5 is the address of n
+
+        ldr r2, [r5, #-4] @ load address of N-1
+        ldr r6, [r2, #-4] @ load previous of N-1 (address to n-2)
+        str r5, [r2, #-4] @ store address of n as previous of n - 1
+      	str r6, [r5, #-4] @ store address prev n-1 into as prev of n
+      	ldr r6, [r2, #4] @ r6 is now the next of i - 1
+      	ldr r7, [r5, #4] @ store the next of n as r7
+        str r6, [r5, #4] @set new next pointer for n as the address of the value of n
+        str r7, [r2, #4] @set new next pointer fro n-1 as next of n
+
+        mov r15,r14
+
 @###########################################
 @# DELETE FUNCTION -- you must write
 @###########################################
@@ -115,35 +187,39 @@ delete:
 @# Print Function -- for functionality
 @###########################################
 print:
-	@load value from memory
-	@print current value
-	@load next address from memory
-	@check to see if next pointer == -1
-	@if not, go to next node
-	@loop back up
-
-
-	@exit the printing loop
+  mov r0, #Stdout
+  mov r8, #-1
+	ldr r1, [r5,#4]          @load value from memory
+	swi SWI_PrInt      @print current value
+  mov r0, #32
+  swi 0x00
+	ldr r5, [r5,#8]          @load next address from memory
+  cmp r5, r8 @check to see if next pointer > -1
+	bgt print   @if r5 is greater than -1, go to the next print
 	mov r15, r14  @return to main
 @###########################################
 @# ARRAY
 @###########################################
 .data
-            my_array:
-                  .word 0x00000000
-                  .word 0x00000001
+          my_array:
                   .word 0x00000002
-                  .word 0x00000003
-                  .word 0x00000004
-                  .word 0x00000005
-                  .word 0x00000006
-                  .word 0x00000007
-                  .word 0x00000008
-                  .word 0x00000009
-                  .word 0x0000000A
-                  .word 0x0000000B
-                  .word 0x0000000C
-                  .word 0x0000000D
-                  .word 0x0000000E
+                  .word 0x00000001
+                  .word 0x00000010
                   .word 0x0000000F
-            .end
+                  .word 0x00000004
+                  .word 0x00000003
+                  .word 0x00000006
+                  .word 0x00000005
+                  .word 0x0000000A
+                  .word 0x00000009
+                  .word 0x00000014
+                  .word 0x00000013
+                  .word 0x0000000C
+                  .word 0x0000000B
+                  .word 0x0000000E
+                  .word 0x0000000D
+                  .word 0x00000012
+                  .word 0x00000011
+                  .word 0x00000008
+                  .word 0x00000007
+          .end
