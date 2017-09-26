@@ -96,6 +96,7 @@ sort:
 
   @if j > 0, then we have to find the J element in the list
   mov r7, #0
+  add r5, r3, #400
   findj:
     cmp r2,r7
     beq compj
@@ -193,10 +194,17 @@ swap:
 @# DELETE FUNCTION -- you must write
 @###########################################
 delete:
-					@you want to delete the node located at r6
-          @get address of n-1, and n+1
-          @set prev pointer of n+1 to n-1
-          @set next pointer of n-1 to the addr of n+1
+            @save next value of node being deleted
+            @go back to previous node and update next value to register just used
+            @save location of current register
+            @go to next new next node
+            @update previous value of current register, to the node we just left
+                      
+          ldr r6, [r5]   @r6 is now the start of n-1
+          ldr r7, [r5, #4]  @load r7 to be the next pointer of n
+          str r7, [r6, #4]  @put the next pointer of n into the next pointer of n-1
+
+          str r6, [r7]  store the address of n-1, in the previous data of n+1
 
 
 @###########################################
