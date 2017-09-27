@@ -17,17 +17,17 @@ main:		ldr 	r3, =my_array	@ Load the starting address of the first
             mov   r4, #20		@ Total number of elements to be added to list
                                     	@ (ok to "hard code" this)
 
-					@ Would keep count of number of items currently added to list
+					                   @ Would keep count of number of items currently added to list
 
             add 	r5, r3, #400	@ location of first element of linked list
                                     	@ (note that I assume it is at a "random" location
                                     	@  beyond the end of the array.)
 
-					@ Would use a register for tail of linked list
+					                    @ Would use a register for tail of linked list
                                     	@ (set to 0 for empty list/NULL pointer)
 
-		mov 	r6, r5		@ Assume r5 holds the address of next list item;
-					@ at the start, we want to populate the first item,
+		    mov 	r6, r5		           @ Assume r5 holds the address of next list item;
+					                    @ at the start, we want to populate the first item,
                                     	@ of the linked list so we simply copy the address in
                                     	@ r5 into r6.
 
@@ -36,32 +36,27 @@ main:		ldr 	r3, =my_array	@ Load the starting address of the first
 @###########################################
 
 mov r9, #0 @make a i to count iterations of loop
-add r7, r7, #4
+mov r7, #4 @set r7 to 4
 mov r2, #-1
-@Make -1 Node at start, and iterate r5 to r5 + 32 (start of list)
-str r5, [r5]        @set prev pointer to its location
+@Make -1 Node to Start at
+str r2, [r5]        @set prev pointer to to -1
 str r2, [r5, #8]   @set value of start node to -1
-mov r1, r5         @save value of start
-add r5, r5, #32   @iterate to the true node 1
-str r5, [r1, #4]  @place location of node 1 in the next pointer of the start node
+mov r1, r5
+add r5, r5, #32
+str r5, [r1, #4]  @  set  next pointer of first node to first data node
 
 loadLoop:				@ You should create a loop that cycles through all
-                                    	@ of the array elements to create a doubly-linked list
-
-            mul    r8, r9, r7   @multiply i by 4
+            cmp r9, r4
+            beq exitLoad                        	@ of the array elements to create a doubly-linked list
+            add r6, r5, #32
+            mul    r8, r9, r7       @multiply i by 4
             ldr    r2, [r3, r8]     @pull values from array
             mov r14, r15
             b insert
 
-
-                                    	@ Call a function to add item to list
-            add r9, r9, #1
-						cmp r9, r4								@ check to see if r4 is greater than or equal to 20
-						bge exitLoad							@if it is exit, if not move to next node
-
-            mov r1, r6
-            mov r6, r5
+            mov r1, r5
             add r5, r5, #32
+            add r9, r9, #1  @iterate i
 
 
             b loadLoop
@@ -70,8 +65,8 @@ loadLoop:				@ You should create a loop that cycles through all
 
 exitLoad:
 	mov r1, #-1
-  add r5, r3, #400  @set r5 to the address of the start of the linked list
-  str r1, [r6, #4]     @set next pointer on n = 20 to -1
+    add r5, r3, #400  @set r5 to the address of the start of the linked list
+    str r1, [r6, #4]     @set next pointer on n = 20 to -1
 
 @##########
 @#Print Initial Linked List using travers
@@ -79,7 +74,6 @@ exitLoad:
 @## available registers: r6, r7, r8, r9
 mov r14, r15
 b print
-
 @##########
 @#Sort The List
 @##########
@@ -97,11 +91,13 @@ sort:
   @if j > 0, then we have to find the J element in the list
   mov r7, #0
   add r5, r3, #400
+  ldr r5, [r5, #4]  @skip past start node
   findj:
     cmp r2,r7
     beq compj
-    ldr r5, [r5, #4]
     add r7, r7, #1
+    ldr r5, [r5, #4]
+    ldr r6, [r5, #8]
     b findj
 
   compj:
@@ -122,71 +118,81 @@ sort:
 
 
   postWhi:
+    @commented out code used for testing below
+    @sub r13, r13, #4	@ make space for r1 to be saved in the stack
+    @str r1, [r13]
+    @mov r14, r15
+    @b print
+    @ldr r1, [r13] @pull r2 from the stack
     add r1,r1,#1
     b sort
 
 exitSort:
-
 @##########
 @#Print Sorted List
 @##########
-@## available registers:
-add r5, r3, #400
 mov r14, r15
 b print
-
-swi SWI_Exit
 @##########
 @#Delete Duplicates
 @##########
 @## available registers:
+mov r4, #20
+add r5, r3, #400
+ldr r5, [r5, #4]  @r5 is now the first value node
+mov r9, #1  @Initializate counter to 1
+
+deleteloop:
+    cmp r9, r4
+    bgt doneprune
+        ldr r7, [r5]   @location of n -1
+        ldr r10, [r5, #8]  @grab value of n
+        ldr r11, [r7, #8]  @grab value of n - 1
+    cmp r10, r11     @compare n and n - 1
+        mov r14, r15
+    beq delete       @if they are equal go to delete function to get rid of n
+    add r9, r9, #1  @iterate counter
+    ldr r5, [r5, #4]  @move to n + 1, after we got rid of n
+    b deleteloop
 
 
-
+doneprune:
 
 @##########
 @#Print Final List
 @##########
 @## available registers:
-@@@@@add r5, r3, #400
-@@@@@mov r14, r15
-@@@@@b print
+mov r14, r15
+b print
 
+swi SWI_Exit
 
 @###########################################
 @# INSERT FUNCTION -- you must write
 @###########################################
 insert:
-            str r1, [r6]                          @store previous start
-            str r5, [r6, #4]                        @store next
-            str r2, [r6, #8]                        @store value location
+            str r1, [r5]                          @store previous start
+            str r6, [r5, #4]                        @store next
+            str r2, [r5, #8]                        @store value location
             mov r15, r14
 
 @###########################################
 @# SWAP FUNCTION -- you must write
 @###########################################
-@registers available: r2, r1, r6, r7, r8, r9
+@registers available: r10, 11, 12, 6
 swap:
         @ write a function to swap n and n-1
-        @ assume r5 is the address of n
+        @ r5 is the address of n
+        @ r8 is the address of n-1
 
-        ldr r2, [r5]  @load address of n-1
-        ldr r6, [r8]  @load address of n - 2
-        str r5, [r6, #4]  @send next of n-2 to point to address of n
-
-        ldr r6, [r5, #4] @load address of n+1 (next pointer of n)
-        str r2, [r6]  @send the prev pointer in n+1 to point to n-1
-
-        @load the next pointer of n
-        @load the next pointer of n - 1
-        str r6, [r2, #4] @set the next pointer of n-1 to the next of n
-        str r2, [r5, #4] @set the next pointer of n to the the addr of n
-
-        ldr r6, [r2]  @load the prev pointer of n-1
-        @load the prev pointer of n (which is addr of n-1)
-        str r6, [r5]  @set the prev pointer of n to the prev pointer of n -1, which is the addr of 2
-        str r5, [r2]  @set the prev pointer of n-1 to the addr of n
-
+        ldr r6, [r5, #4]  @ load next pointer of N
+		ldr r10, [r8] @ load previous of N - 1 aka addr of n-2
+		str r6, [r8, #4]  @ store next of N as next of N -1
+		str r10, [r5] @ store previous of N - 1 as previous of N
+		str r5, [r8]@ store N as previous of N - 1
+		str r8, [r5, #4]  @ store N - 1 as next of N
+		str r8, [r6]  @ store N - 1 as previous of N + 1
+		str r5, [r10, #4]  @ store N as next of N - 2
 
         mov r15,r14
 
@@ -194,33 +200,34 @@ swap:
 @# DELETE FUNCTION -- you must write
 @###########################################
 delete:
-            @save next value of node being deleted
-            @go back to previous node and update next value to register just used
-            @save location of current register
-            @go to next new next node
-            @update previous value of current register, to the node we just left
-                      
-          ldr r6, [r5]   @r6 is now the start of n-1
-          ldr r7, [r5, #4]  @load r7 to be the next pointer of n
-          str r7, [r6, #4]  @put the next pointer of n into the next pointer of n-1
+            @ r5 is the location of n
+            @ r7 is the location of n - 1
+            @We want to delte n - 1
 
-          str r6, [r7]  store the address of n-1, in the previous data of n+1
-
+            ldr r8, [r7]  @ save the addr of n - 2
+            str r8, [r5]  @ set prev of n to point to n - 2
+            str r5, [r8, #4]  @ set next value of n -2 to point to n          
+            mov r15, r14
 
 @###########################################
 @# Print Function -- for functionality
 @###########################################
 print:
-  mov r0, #Stdout
-  mov r8, #-1
-	ldr r1, [r5,#8]          @load value from memory
-	swi SWI_PrInt      @print current value
-  mov r0, #32   @space ASCII
-  swi 0x00
-	ldr r5, [r5,#4]          @load next address from memory
-  cmp r5, r8 @check to see if next pointer = -1
-	bgt print   @if r5 is greater than -1, go to the next print
-	mov r15, r14  @return to main
+  add r5, r3, #400
+  printloop:
+          ldr r5, [r5, #4]
+          mov r0, #Stdout
+          ldr r1, [r5,#8]          @load value from memory
+          cmp r1, #-1 @check to see if next pointer = -1
+          ble printexit   @if r5 is greater than -1, go to the next print
+          swi SWI_PrInt      @print current value
+          mov r0, #32   @space ASCII
+          swi 0x00
+          b printloop
+    printexit:
+        mov r0, #10   @/n ASCII
+        swi 0x00
+	    mov r15, r14  @return to main
 @###########################################
 @# ARRAY
 @###########################################
@@ -240,8 +247,8 @@ print:
                   .word 0x00000013
                   .word 0x0000000C
                   .word 0x0000000B
-                  .word 0x0000000E
-                  .word 0x0000000D
+                  .word 0x00000014
+                  .word 0x00000003
                   .word 0x00000012
                   .word 0x00000011
                   .word 0x00000008

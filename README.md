@@ -5,7 +5,9 @@ Ryan Green
 
 
 Project Break Down:
-We are able to build the array and we worked to write functions a display the results of interts, swaps, and deletes. However we ran into issues when referencing the pointers with our given convention and then attempted to switch from a reference based on the middle value, to begining with the n then n+1 and n+2. 
 
+The Current Code Functions as desires.  In standard out you will see 3 outputs of 20 linked lists, separated by newlines for readability. 
 
-
+1. The unordered list provided by reading in array
+2. The sorted list
+3. Sorted list, with duplicates removed.
